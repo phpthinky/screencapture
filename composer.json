@@ -11,7 +11,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "Native\\Mobile\\ScreenCapture\\": "src/"
+            "Phpthinky\\ScreenCapture\\": "src/"
         }
     },
     "require": {
@@ -20,7 +20,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Native\\Mobile\\ScreenCapture\\ScreenCaptureServiceProvider"
+                "Phpthinky\\ScreenCapture\\ScreenCaptureServiceProvider"
             ]
         },
         "nativephp": {

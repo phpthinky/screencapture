@@ -1,9 +1,8 @@
 <?php
 
-namespace Native\Mobile\Providers;
+namespace Phpthinky\ScreenCapture;
 
 use Illuminate\Support\ServiceProvider;
-use Native\Mobile\ScreenCapture;
 
 class ScreenCaptureServiceProvider extends ServiceProvider
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Native\Mobile;
+namespace Phpthinky\ScreenCapture;
 
 class ScreenCapture
 {

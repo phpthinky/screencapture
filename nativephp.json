@@ -1,18 +1,6 @@
 {
-    "namespace": "File",
+    "namespace": "Phpthinky\\ScreenCapture",
     "bridge_functions": [
-        {
-            "name": "File.Move",
-            "android": "com.nativephp.file.FileFunctions.Move",
-            "ios": "FileFunctions.Move",
-            "description": "Move a file from one location to another"
-        },
-        {
-            "name": "File.Copy",
-            "android": "com.nativephp.file.FileFunctions.Copy",
-            "ios": "FileFunctions.Copy",
-            "description": "Copy a file from one location to another"
-        },
         {
             "name": "ScreenCapture.SaveBase64",
             "android": "com.nativephp.screencapture.ScreenCaptureFunctions.SaveBase64",
@@ -20,26 +8,21 @@
             "description": "Save a base64 encoded image directly to device storage"
         }
     ],
+    "providers": [
+        "Phpthinky\\ScreenCapture\\ScreenCaptureServiceProvider"
+    ],
     "android": {
         "min_version": 26,
         "permissions": [
             "android.permission.READ_EXTERNAL_STORAGE",
             "android.permission.WRITE_EXTERNAL_STORAGE"
-        ],
-        "dependencies": {
-            "implementation": []
-        }
+        ]
     },
     "ios": {
         "min_version": "18.2",
         "info_plist": {
-            "NSPhotoLibraryAddUsageDescription": "This app needs access to save screenshots to your photo library",
-            "NSPhotoLibraryUsageDescription": "This app needs access to save screenshots to your photo library"
-        },
-        "dependencies": {
-            "swift_packages": [],
-            "pods": []
+            "NSPhotoLibraryAddUsageDescription": "Save screenshots to your photo library",
+            "NSPhotoLibraryUsageDescription": "Save screenshots to your photo library"
         }
-    },
-    "events": []
+    }
 }

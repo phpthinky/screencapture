@@ -1,15 +1,12 @@
 {
-    "namespace": "Phpthinky\\ScreenCapture",
+    "namespace": "ScreenCapture",
     "bridge_functions": [
         {
             "name": "ScreenCapture.SaveBase64",
-            "android": "com.nativephp.screencapture.ScreenCaptureFunctions.SaveBase64",
+            "android": "com.phpthinky.screencapture.ScreenCaptureFunctions.SaveBase64",
             "ios": "ScreenCaptureFunctions.SaveBase64",
             "description": "Save a base64 encoded image directly to device storage"
         }
-    ],
-    "providers": [
-        "Phpthinky\\ScreenCapture\\ScreenCaptureServiceProvider"
     ],
     "android": {
         "min_version": 26,
@@ -24,5 +21,6 @@
             "NSPhotoLibraryAddUsageDescription": "Save screenshots to your photo library",
             "NSPhotoLibraryUsageDescription": "Save screenshots to your photo library"
         }
-    }
+    },
+    "events": []
 }

@@ -25,7 +25,9 @@
         },
         "nativephp": {
             "platform": ["android", "ios"],
-            "namespace": "ScreenCapture"
+            "namespace": "ScreenCapture",
+            "manifest": "nativephp.json"
+            
         }
     }
 }

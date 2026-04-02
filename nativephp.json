@@ -1,5 +1,5 @@
 {
-    "namespace": "Phpthinky\\ScreenCapture",
+    "namespace": "ScreenCapture",
     "bridge_functions": [
         {
             "name": "ScreenCapture.SaveBase64",

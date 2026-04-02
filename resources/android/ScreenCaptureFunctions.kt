@@ -1,4 +1,4 @@
-package com.nativephp.screencapture
+package com.phpthinky.screencapture
 
 import android.content.ContentValues
 import android.content.Context

@@ -1,0 +1,20 @@
+{
+    "name": "phpthinky/screencapture",
+    "description": "Screen capture plugin for NativePHP Mobile - Save screenshots directly to device storage",
+    "type": "nativephp-plugin",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Native\\Mobile\\ScreenCapture\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=7.4"
+    },
+    "extra": {
+        "nativephp": {
+            "platform": ["android", "ios"],
+            "namespace": "ScreenCapture"
+        }
+    }
+}

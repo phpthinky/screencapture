@@ -3,15 +3,27 @@
     "description": "Screen capture plugin for NativePHP Mobile - Save screenshots directly to device storage",
     "type": "nativephp-plugin",
     "license": "MIT",
+    "authors": [
+        {
+            "name": "phpthinky",
+            "email": "info@democodes.online"
+        }
+    ],
     "autoload": {
         "psr-4": {
             "Native\\Mobile\\ScreenCapture\\": "src/"
         }
     },
     "require": {
-        "php": ">=7.4"
+        "php": "^8.2"
     },
     "extra": {
+        
+        "laravel": {
+            "providers": [
+                "Native\\Mobile\\Providers\\ScreenCaptureServiceProvider"
+            ]
+        },
         "nativephp": {
             "platform": ["android", "ios"],
             "namespace": "ScreenCapture"

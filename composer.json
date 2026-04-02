@@ -18,10 +18,9 @@
         "php": "^8.2"
     },
     "extra": {
-        
         "laravel": {
             "providers": [
-                "Native\\Mobile\\Providers\\ScreenCaptureServiceProvider"
+                "Native\\Mobile\\ScreenCapture\\ScreenCaptureServiceProvider"
             ]
         },
         "nativephp": {

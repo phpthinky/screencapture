@@ -13,42 +13,54 @@ enum ScreenCaptureFunctions {
             guard let rawData = parameters["data"] as? String, !rawData.isEmpty else {
                 return ["success": false, "error": "'data' parameter is required"]
             }
-            
+
             var filename = parameters["filename"] as? String
             let customPath = parameters["path"] as? String
-            
-            print("ScreenCapture.SaveBase64 - Saving image")
-            
+            let qualityPercent = (parameters["quality"] as? NSNumber)?.intValue ?? 85
+            let compressionQuality = CGFloat(max(1, min(100, qualityPercent))) / 100.0
+
+            print("ScreenCapture.SaveBase64 - Saving image, quality: \(qualityPercent)")
+
             // Remove data URL prefix if present
             var base64Data = rawData
             if base64Data.contains(",") {
                 base64Data = String(base64Data.split(separator: ",")[1])
             }
-            
+
             // Decode base64
             guard let imageData = Data(base64Encoded: base64Data) else {
                 return ["success": false, "error": "Invalid base64 data"]
             }
-            
+
+            // Compress image to JPEG to reduce memory usage before saving
+            guard let image = UIImage(data: imageData),
+                  let compressedData = image.jpegData(compressionQuality: compressionQuality) else {
+                return ["success": false, "error": "Failed to compress image - may be too large for available memory"]
+            }
+
             // Generate filename if not provided
             if filename == nil || filename?.isEmpty == true {
                 let timestamp = DateFormatter()
                 timestamp.dateFormat = "yyyyMMdd_HHmmss"
-                filename = "screenshot_\(timestamp.string(from: Date())).png"
+                filename = "screenshot_\(timestamp.string(from: Date())).jpg"
             }
-            
-            // Ensure .png extension
-            if let filename = filename, !filename.hasSuffix(".png") {
-                filename?.append(".png")
+
+            // Ensure .jpg extension
+            if var fn = filename {
+                let ext = (fn as NSString).pathExtension.lowercased()
+                if ext != "jpg" && ext != "jpeg" {
+                    fn = (fn as NSString).deletingPathExtension + ".jpg"
+                }
+                filename = fn
             }
-            
+
             do {
                 let savedPath: String
-                
+
                 if let customPath = customPath {
-                    savedPath = try saveToCustomPath(imageData: imageData, filename: filename!, path: customPath)
+                    savedPath = try saveToCustomPath(imageData: compressedData, filename: filename!, path: customPath)
                 } else {
-                    savedPath = try saveToPhotoLibrary(imageData: imageData, filename: filename!)
+                    savedPath = try saveToPhotoLibrary(imageData: compressedData, filename: filename!)
                 }
                 
                 print("Image saved successfully: \(savedPath)")
@@ -66,20 +78,20 @@ enum ScreenCaptureFunctions {
         
         private func saveToPhotoLibrary(imageData: Data, filename: String) throws -> String {
             guard let image = UIImage(data: imageData) else {
-                throw NSError(domain: "ScreenCapture", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to create image from data"])
+                throw NSError(domain: "ScreenCapture", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to create image from compressed data"])
             }
-            
+
             let semaphore = DispatchSemaphore(value: 0)
             var saveError: Error?
             var localIdentifier: String?
-            
+
             PHPhotoLibrary.requestAuthorization { status in
                 guard status == .authorized else {
                     saveError = NSError(domain: "ScreenCapture", code: 2, userInfo: [NSLocalizedDescriptionKey: "Photo library access denied"])
                     semaphore.signal()
                     return
                 }
-                
+
                 PHPhotoLibrary.shared().performChanges({
                     let request = PHAssetChangeRequest.creationRequestForAsset(from: image)
                     localIdentifier = request.placeholderForCreatedAsset?.localIdentifier

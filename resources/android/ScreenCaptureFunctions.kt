@@ -2,6 +2,8 @@ package com.phpthinky.screencapture
 
 import android.content.ContentValues
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
@@ -9,6 +11,7 @@ import android.util.Base64
 import android.util.Log
 import androidx.fragment.app.FragmentActivity
 import com.nativephp.mobile.bridge.BridgeFunction
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -38,8 +41,9 @@ object ScreenCaptureFunctions {
             val rawData = parameters["data"] as? String
             var filename = parameters["filename"] as? String
             val customPath = parameters["path"] as? String
+            val quality = (parameters["quality"] as? Number)?.toInt()?.coerceIn(1, 100) ?: 85
 
-            Log.d("ScreenCapture.SaveBase64", "Saving base64 image - filename: $filename, path: $customPath")
+            Log.d("ScreenCapture.SaveBase64", "Saving base64 image - filename: $filename, path: $customPath, quality: $quality")
 
             if (rawData.isNullOrEmpty()) {
                 return mapOf("success" to false, "error" to "'data' parameter is required")
@@ -54,23 +58,29 @@ object ScreenCaptureFunctions {
 
                 // Decode base64 to bytes
                 val imageBytes = Base64.decode(base64Data, Base64.DEFAULT)
-                
+
+                // Compress image to JPEG to reduce memory usage before saving
+                val compressedBytes = compressBitmap(imageBytes, quality)
+                    ?: return mapOf("success" to false, "error" to "Failed to compress image - insufficient memory")
+
                 // Generate filename if not provided
                 if (filename.isNullOrEmpty()) {
                     val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-                    filename = "screenshot_$timestamp.png"
+                    filename = "screenshot_$timestamp.jpg"
                 }
 
-                // Ensure .png extension
-                if (!filename.endsWith(".png", ignoreCase = true)) {
-                    filename += ".png"
+                // Ensure .jpg extension
+                if (!filename.endsWith(".jpg", ignoreCase = true) && !filename.endsWith(".jpeg", ignoreCase = true)) {
+                    filename = filename.substringBeforeLast(".").let { base ->
+                        if (base == filename) "$filename.jpg" else "$base.jpg"
+                    }
                 }
 
-                // Save the image
+                // Save the compressed image
                 val savedPath = if (customPath != null) {
-                    saveToCustomPath(activity.applicationContext, imageBytes, filename, customPath)
+                    saveToCustomPath(activity.applicationContext, compressedBytes, filename, customPath)
                 } else {
-                    saveToMediaStore(activity.applicationContext, imageBytes, filename)
+                    saveToMediaStore(activity.applicationContext, compressedBytes, filename)
                 }
 
                 if (savedPath != null) {
@@ -90,13 +100,27 @@ object ScreenCaptureFunctions {
             }
         }
 
+        private fun compressBitmap(imageBytes: ByteArray, quality: Int): ByteArray? {
+            return try {
+                val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                    ?: return null
+                val outputStream = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
+                bitmap.recycle()
+                outputStream.toByteArray()
+            } catch (e: OutOfMemoryError) {
+                Log.e("ScreenCapture", "Out of memory compressing image", e)
+                null
+            }
+        }
+
         private fun saveToMediaStore(context: Context, imageBytes: ByteArray, filename: String): String? {
             return try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     // Android 10+ using MediaStore API (works with scoped storage)
                     val contentValues = ContentValues().apply {
                         put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
-                        put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
+                        put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
                         put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_PICTURES}/Screenshots")
                     }
 
@@ -132,7 +156,7 @@ object ScreenCaptureFunctions {
                     android.media.MediaScannerConnection.scanFile(
                         context,
                         arrayOf(imageFile.absolutePath),
-                        arrayOf("image/png"),
+                        arrayOf("image/jpeg"),
                         null
                     )
 
@@ -164,7 +188,7 @@ object ScreenCaptureFunctions {
                 android.media.MediaScannerConnection.scanFile(
                     context,
                     arrayOf(file.absolutePath),
-                    arrayOf("image/png"),
+                    arrayOf("image/jpeg"),
                     null
                 )
 
